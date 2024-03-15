@@ -5,15 +5,25 @@ namespace App\Http\Controllers;
 use App\Models\Listing;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-
+use Auth;
 class ListingController extends Controller
 {
     // Show all listings
     public function index() {
+        $query = Listing::latest()->filter(request(['tag', 'search']));
+        
+        if (Auth::check()) {
+            $user_id = Auth::user()->id;
+            $listings = $query->where('user_id', $user_id)->paginate(6);
+        } else {
+            $listings = $query->paginate(6);
+        }
+    
         return view('listings.index', [
-            'listings' => Listing::latest()->filter(request(['tag', 'search']))->paginate(6)
+            'listings' => $listings
         ]);
     }
+    
 
     //Show single listing
     public function show(Listing $listing) {
